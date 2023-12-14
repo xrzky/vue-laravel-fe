@@ -29,8 +29,8 @@
                                 </div>
                                 <div class="product-thumbs" v-if="productDetails.galleries.length > 0">
                                     <carousel class="product-thumbs-track ps-slider" :dots="false" :nav="false">
-                                        <div v-for="ss in productDetails.galleries"
-                                             :key="ss.id" class="pt" @click="changeImage(ss.photo)"
+                                        <div v-for="ss in productDetails.galleries" :key="ss.id" class="pt"
+                                            @click="changeImage(ss.photo)"
                                             :class="ss.photo == gambar_default ? 'active' : ''">
                                             <img :src="ss.photo" alt="" />
                                         </div>
@@ -44,13 +44,15 @@
                                         <h3>{{ productDetails.name }}</h3>
                                     </div>
                                     <div class="pd-desc">
-                                        <p>
-                                            {{ productDetails.description }}
+                                        <p v-html="productDetails.description">
                                         </p>
                                         <h4>Rp. {{ productDetails.price }}</h4>
                                     </div>
                                     <div class="quantity">
-                                        <router-link to="/cart" class="primary-btn pd-cart">Add To Cart</router-link>
+                                        <router-link to="/cart">
+                                            <a @click="saveKeranjang(productDetails.id, productDetails.name, productDetails.price, productDetails.galleries[0].photo)"
+                                                href="#" class="primary-btn pd-cart">Add To Cart</a>
+                                        </router-link>
                                     </div>
                                 </div>
                             </div>
@@ -86,13 +88,8 @@ export default {
     data() {
         return {
             gambar_default: '',
-            thumbs: [
-                "img/mickey1.jpg",
-                "img/mickey2.jpg",
-                "img/mickey3.jpg",
-                "img/mickey4.jpg",
-            ],
-            productDetails: []
+            productDetails: [],
+            keranjangUser: []
         }
     },
     methods: {
@@ -104,9 +101,29 @@ export default {
             this.productDetails = data;
             // replace value gambar default dengan data dari API (galleries)
             this.gambar_default = data.galleries[0].photo;
+        },
+        saveKeranjang(idProduct, nameProduct, priceProduct, photoProduct) {
+
+            var productStored = {
+                "id": idProduct,
+                "name": nameProduct,
+                "price": priceProduct,
+                "photo": photoProduct
+            }
+
+            this.keranjangUser.push(productStored);
+            const parsed = JSON.stringify(this.keranjangUser);
+            localStorage.setItem('keranjangUser', parsed);
         }
     },
     mounted() {
+        if (localStorage.getItem('keranjangUser')) {
+            try {
+                this.keranjangUser = JSON.parse(localStorage.getItem('keranjangUser'));
+            } catch (e) {
+                localStorage.removeItem('keranjangUser');
+            }
+        }
         axios
             .get("http://localhost:8000/api/products", {
                 params: {
